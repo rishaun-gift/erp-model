@@ -16,6 +16,7 @@ public class CustomerEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty("customerId")
     private Long id;
 
     @JsonProperty("name")
