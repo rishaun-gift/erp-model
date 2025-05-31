@@ -24,5 +24,5 @@ public class CustomerEntity {
     private String contact;
     private String email;
     private String date;
-
+    private String location;
 }

@@ -32,6 +32,7 @@ public class CustomerService {
             customer.setContact(customerDetails.getContact());
             customer.setEmail(customerDetails.getEmail());
             customer.setDate(customerDetails.getDate());
+            customer.setLocation(customerDetails.getLocation());
             return customerRepository.save(customer);
         }).orElse(null);
     }

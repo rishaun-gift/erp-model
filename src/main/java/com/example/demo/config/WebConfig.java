@@ -9,7 +9,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // Applies to all endpoints
-                .allowedOrigins("http://localhost:3000", "https://192.168.0.119:3000") // React dev server
+                .allowedOrigins("http://localhost:3000", "https://192.168.0.95:3000") // React dev server
                 .allowedMethods("GET", "POST", "PUT", "DELETE")
                 .allowedHeaders("*");
     }
