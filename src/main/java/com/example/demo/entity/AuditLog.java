@@ -1,9 +1,10 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 
 @Entity
@@ -22,6 +23,14 @@ public class AuditLog {
     private String method; // e.g., CREATE, READ, UPDATE, DELETE, CLICK
     private String entityName;
 
-    @Column(name = "timestamp")
-    private ZonedDateTime timestamp;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Kolkata")
+    private OffsetDateTime timestamp;
+
+
+    @Column(columnDefinition = "TEXT")
+    private String oldData;
+
+    @Column(columnDefinition = "TEXT")
+    private String newData;
+
 }
