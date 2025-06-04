@@ -38,66 +38,57 @@ public class CustomerService {
     }
 
     public CustomerEntity createCustomer(CustomerEntity customer) {
-        return customerRepository.save(customer);
+        try {
+            CustomerEntity savedCustomer = customerRepository.save(customer);
+
+            // Format the new customer data in the desired style
+            String newData = formatCustomerData(savedCustomer);
+
+            auditLogService.logAction(
+                    request.getRemoteAddr(),
+                    "Created customer with ID " + savedCustomer.getId(),
+                    "/api/customer",
+                    "POST",
+                    "Customer",
+                    "",
+                    newData
+            );
+
+            return savedCustomer;
+
+        } catch (Exception e) {
+            logger.error("Error creating customer", e);
+            throw new RuntimeException("Failed to create customer", e);
+        }
     }
+
 
     @Transactional
     public CustomerEntity updateCustomer(Long id, CustomerEntity customerDetails) {
         return customerRepository.findById(id).map(existingCustomer -> {
             try {
-                boolean isUpdated = false;
-                StringBuilder oldData = new StringBuilder();
-                StringBuilder newData = new StringBuilder();
+                // Full old data before update
+                String oldData = objectMapper.writeValueAsString(existingCustomer);
 
-                if (!existingCustomer.getLocation().equals(customerDetails.getLocation())) {
-                    isUpdated = true;
-                    oldData.append("Location: ").append(existingCustomer.getLocation()).append("; ");
-                    newData.append("Location: ").append(customerDetails.getLocation()).append("; ");
-                }
+                // Update fields
+                updateCustomerFields(existingCustomer, customerDetails);
+                CustomerEntity updatedCustomer = customerRepository.save(existingCustomer);
 
-                if (!existingCustomer.getContact().equals(customerDetails.getContact())) {
-                    isUpdated = true;
-                    oldData.append("Contact: ").append(existingCustomer.getContact()).append("; ");
-                    newData.append("Contact: ").append(customerDetails.getContact()).append("; ");
-                }
+                // Full new data after update
+                String newData = objectMapper.writeValueAsString(updatedCustomer);
 
-                if (!existingCustomer.getEmail().equals(customerDetails.getEmail())) {
-                    isUpdated = true;
-                    oldData.append("Email: ").append(existingCustomer.getEmail()).append("; ");
-                    newData.append("Email: ").append(customerDetails.getEmail()).append("; ");
-                }
+                // Audit log
+                auditLogService.logAction(
+                        request.getRemoteAddr(),
+                        "Updated customer with ID " + id,
+                        "/api/customer/" + id,
+                        "PUT",
+                        "Customer",
+                        oldData,
+                        newData
+                );
 
-                if (!existingCustomer.getCustomerName().equals(customerDetails.getCustomerName())) {
-                    isUpdated = true;
-                    oldData.append("Name: ").append(existingCustomer.getCustomerName()).append("; ");
-                    newData.append("Name: ").append(customerDetails.getCustomerName()).append("; ");
-                }
-
-                if (!existingCustomer.getDate().equals(customerDetails.getDate())) {
-                    isUpdated = true;
-                    oldData.append("Date: ").append(existingCustomer.getDate()).append("; ");
-                    newData.append("Date: ").append(customerDetails.getDate()).append("; ");
-                }
-
-                if (isUpdated) {
-                    updateCustomerFields(existingCustomer, customerDetails);
-
-                    CustomerEntity updatedCustomer = customerRepository.save(existingCustomer);
-
-                    auditLogService.logAction(
-                            request.getRemoteAddr(),
-                            "Updated customer with ID " + id,
-                            "/api/customer/" + id,
-                            "UPDATE",
-                            "Customer",
-                            oldData.toString(),
-                            newData.toString()
-                    );
-
-                    return updatedCustomer;
-                } else {
-                    return existingCustomer;
-                }
+                return updatedCustomer;
 
             } catch (Exception e) {
                 logger.error("Error updating customer with ID " + id, e);
@@ -107,8 +98,27 @@ public class CustomerService {
     }
 
     public void deleteCustomer(Long id) {
+        Optional<CustomerEntity> optionalCustomer = customerRepository.findById(id);
+        if (optionalCustomer.isEmpty()) {
+            throw new RuntimeException("Customer with ID " + id + " not found.");
+        }
+
+        CustomerEntity customer = optionalCustomer.get();
+        String oldData = formatCustomerData(customer);
+
         customerRepository.deleteById(id);
+
+        auditLogService.logAction(
+                request.getRemoteAddr(),
+                "Deleted customer with ID " + id,
+                "/api/customer/" + id,
+                "DELETE",
+                "Customer",
+                oldData,
+                ""
+        );
     }
+
 
     private void updateCustomerFields(CustomerEntity existingCustomer, CustomerEntity newDetails) {
         existingCustomer.setCustomerName(newDetails.getCustomerName());
@@ -117,4 +127,14 @@ public class CustomerService {
         existingCustomer.setDate(newDetails.getDate());
         existingCustomer.setLocation(newDetails.getLocation());
     }
+
+    private String formatCustomerData(CustomerEntity customer) {
+        return "id: " + customer.getId() + "\n"
+                + "contact: " + customer.getContact() + "\n"
+                + "email: " + customer.getEmail() + "\n"
+                + "date: " + customer.getDate() + "\n"
+                + "location: " + customer.getLocation() + "\n"
+                + "name: " + customer.getCustomerName();
+    }
+
 }

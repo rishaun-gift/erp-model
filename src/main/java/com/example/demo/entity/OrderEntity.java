@@ -16,7 +16,11 @@ public class OrderEntity {
     private Long orderId;
 
     private String status;
-    private Double amount;
+    private String amount;
+    private String quantity;
+    private String product;
+
+
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
