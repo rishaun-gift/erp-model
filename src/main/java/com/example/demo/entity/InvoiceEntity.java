@@ -14,7 +14,8 @@ public class InvoiceEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long invoiceId;
-
+    private String supplierName;
+    private String description;
     private String dueMonth;
     private Double amount;
 

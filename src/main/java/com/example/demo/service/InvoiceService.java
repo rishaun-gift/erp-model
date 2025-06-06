@@ -75,18 +75,17 @@ public class InvoiceService {
                     throw new RuntimeException("Customer with ID " + customerId + " not found.");
                 }
 
-                // Serialize old data before changes
-                String oldData = objectMapper.writeValueAsString(existingInvoice);
+                String oldData = formatInvoiceData(existingInvoice);
 
-                // Update fields
                 existingInvoice.setDueMonth(invoiceDetails.getDueMonth());
                 existingInvoice.setAmount(invoiceDetails.getAmount());
+                existingInvoice.setSupplierName(invoiceDetails.getSupplierName());
+                existingInvoice.setDescription(invoiceDetails.getDescription());
                 existingInvoice.setCustomer(customerOpt.get());
 
                 InvoiceEntity updatedInvoice = invoiceRepository.save(existingInvoice);
 
-                // Serialize new data after changes
-                String newData = objectMapper.writeValueAsString(updatedInvoice);
+                String newData = formatInvoiceData(updatedInvoice);
 
                 auditLogService.logAction(
                         request.getRemoteAddr(),
@@ -106,6 +105,7 @@ public class InvoiceService {
             }
         }).orElse(null);
     }
+
 
     public void deleteInvoice(Long id) {
         Optional<InvoiceEntity> existingOpt = invoiceRepository.findById(id);
@@ -132,6 +132,8 @@ public class InvoiceService {
         return "id: " + invoice.getInvoiceId() + "\n"
                 + "dueMonth: " + invoice.getDueMonth() + "\n"
                 + "amount: " + invoice.getAmount() + "\n"
+                + "supplierName: " + invoice.getSupplierName() + "\n"
+                + "description: " + invoice.getDescription() + "\n"
                 + "customerId: " + (invoice.getCustomer() != null ? invoice.getCustomer().getId() : "null") + "\n"
                 + "customerName: " + (invoice.getCustomer() != null ? invoice.getCustomer().getCustomerName() : "null");
     }

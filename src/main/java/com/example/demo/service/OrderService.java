@@ -76,21 +76,21 @@ public class OrderService {
                     throw new RuntimeException("Customer with ID " + customerId + " not found.");
                 }
 
-                // Serialize old data before changes
-                String oldData = objectMapper.writeValueAsString(existingOrder);
+                // Format old data
+                String oldData = formatOrderData(existingOrder);
 
                 // Update fields
                 existingOrder.setStatus(orderDetails.getStatus());
                 existingOrder.setAmount(orderDetails.getAmount());
                 existingOrder.setProduct(orderDetails.getProduct());
                 existingOrder.setQuantity(orderDetails.getQuantity());
-                
+                existingOrder.setCustomer(customerOpt.get()); // important!
+
                 OrderEntity updatedOrder = orderRepository.save(existingOrder);
 
-                // Serialize new data after changes
-                String newData = objectMapper.writeValueAsString(updatedOrder);
+                // Format new data
+                String newData = formatOrderData(updatedOrder);
 
-                // Log full old + new data
                 auditLogService.logAction(
                         request.getRemoteAddr(),
                         "Updated order with ID " + id,
